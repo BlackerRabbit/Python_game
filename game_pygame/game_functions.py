@@ -2,12 +2,15 @@ import sys
 import pygame
 from bullet import Bullet
 from allion import Alion
+from pygame.sprite import Sprite
+from time import sleep
+from button import Button
 		# gf.check_events(ai_setting, screen, ship, bullets)
 		# ship.update()
 		# bullets.update()
 		# gf.update_screen(ai_setting, screen, ship, bullets)
 
-def check_events(ai_setting, screen, ship, bullets):
+def check_events(ai_setting, screen, ship, bullets, stats, play_button, allions):
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			sys.exit()
@@ -32,7 +35,22 @@ def check_events(ai_setting, screen, ship, bullets):
 				quit()
 		elif event.type == pygame.KEYUP:
 			ship.reset_moving()
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			mouse_x, mouse_y = pygame.mouse.get_pos()
+			check_play_btn(stats, play_button, mouse_x, mouse_y, allions, bullets, screen, ship, ai_setting)
 
+def check_play_btn(stats, play_button, mouse_x, mouse_y, allions, bullets, screen, ship, ai_setting):
+	if play_button.rect.collidepoint(mouse_x, mouse_y) and not stats.game_active:
+		stats.reset_stats()
+		stats.game_active = True
+
+		pygame.mouse.set_visible(False)
+
+		allions.empty()
+		bullets.empty()
+
+		create_fleet(ai_setting, screen, allions, ship )
+		ship.center_ship()
 
 def get_allion_nmbers(ai_setting, allion_widt):
 	avaliable_space_x = ai_setting.screen_width - 2 * allion_widt
@@ -62,23 +80,35 @@ def create_allion(ai_setting, screen, allions, allion_number, row_number):
 	allions.add(allion)
 
 
-def update_screen(ai_setting, screen, ship, bullets, allions):	
+def update_screen(ai_setting, screen, ship, bullets, allions,stats, play_btn):	
 	screen.fill(ai_setting.bg_color)
 	for bullet in bullets:
 		bullet.draw_bullet()
 	ship.blitem()
 	for allion in allions:
 		allion.blitem()
+	if not stats.game_active:
+		play_btn.draw_button()
 	pygame.display.flip()
-		
-def update_bullet(bullets):
+
+
+# def create_fleet(ai_setting, screen, allions, ship):
+def update_bullet(bullets, allions, ai_setting, screen, ship):
 	for bullet in bullets:
 		if bullet.rect.bottom <= 0:
 			bullets.remove(bullet)
-
-def update_aliens(ai_setting, allions):	
+	collisions = pygame.sprite.groupcollide(bullets, allions, True, True)
+	if len(allions) == 0:
+		bullets.empty()
+		create_fleet(ai_setting, screen, allions, ship)
+# gf.update_aliens(ai_setting, allions, ship， screen，stats， bullets)
+def update_aliens(ai_setting, allions, ship, screen, stats, bullets):
 	check_fleet_edges(ai_setting, allions)
 	allions.update()
+	if pygame.sprite.spritecollideany(ship, allions):
+		ship_hit(ai_setting, stats, screen, ship, allions, bullets)
+	check_aliens_bottom(ai_setting, stats, screen, ship, allions, bullets)
+		
 
 def change_fleet_direction(ai_setting, allions):
 	for alien in allions.sprites():
@@ -91,7 +121,29 @@ def check_fleet_edges(ai_setting, allions):
 			change_fleet_direction(ai_setting, allions)
 			break
 
-		
+def ship_hit(ai_setting, stats, screen, ship, allions, bullets):
+	if stats.ships_left > 0:
+
+		stats.ships_left -= 1
+		allions.empty()
+		bullets.empty()
+		create_fleet(ai_setting, screen, allions, ship)
+		ship.center_ship()
+		sleep(1)
+	else:
+		stats.game_active = False
+		pygame.mouse.set_visible(True)
+
+def check_aliens_bottom(ai_setting, stats, screen, ship, aliens, bullets):
+	screen_rect = screen.get_rect()
+	for alien in aliens.sprites():
+		if alien.rect.bottom >= screen_rect.bottom:
+			ship_hit(ai_setting, stats, screen, ship, aliens, bullets)
+			break
+			
+
+
+
 
 
 

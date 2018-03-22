@@ -5,6 +5,8 @@ from ship import Ship
 import game_functions as gf
 from pygame.sprite import Group
 from allion import Alion
+from game_stats import Game_state as gs
+from button import Button
 
 def run_game():
 	pygame.init()
@@ -21,12 +23,20 @@ def run_game():
 	allions = Group()
 	gf.create_fleet(ai_setting, screen, allions, ship)
 
-	while 1:
-		gf.check_events(ai_setting, screen, ship, bullets)
-		ship.update()
-		bullets.update()
-		gf.update_aliens(ai_setting, allions)
-		gf.update_bullet(bullets)
-		gf.update_screen(ai_setting, screen, ship, bullets, allions)
+	stats = gs(ai_setting)
 
+	play_btn = Button(ai_setting, screen, 'Play')
+
+# def update_bullet(bullets, allions, ai_setting, screen, ship):
+	while 1:
+		# def check_events(ai_setting, screen, ship, bullets, stats, play_button, allions):
+		gf.check_events(ai_setting, screen, ship, bullets, stats, play_btn, allions)
+		if stats.game_active:
+			ship.update()
+			bullets.update()
+			gf.update_aliens(ai_setting, allions, ship, screen, stats, bullets)
+			gf.update_bullet(bullets, allions, ai_setting, screen, ship)
+		else :
+			print('game is done')
+		gf.update_screen(ai_setting, screen, ship, bullets, allions, stats, play_btn)
 run_game()

@@ -38,4 +38,7 @@ class Ship():
 		self.moving_up = False
 		self.moving_down = False
 		pass
-			
+	
+	def center_ship(self):
+		self.rect.bottom = self.screen_rect.bottom
+		self.rect.centerx = self.screen_rect.centerx
