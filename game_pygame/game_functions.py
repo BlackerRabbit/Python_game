@@ -44,6 +44,7 @@ def check_play_btn(stats, play_button, mouse_x, mouse_y, allions, bullets, scree
 		stats.reset_stats()
 		stats.game_active = True
 
+		ai_setting.initialize_dynamic_settings()
 		pygame.mouse.set_visible(False)
 
 		allions.empty()
@@ -80,8 +81,9 @@ def create_allion(ai_setting, screen, allions, allion_number, row_number):
 	allions.add(allion)
 
 
-def update_screen(ai_setting, screen, ship, bullets, allions,stats, play_btn):	
+def update_screen(ai_setting, screen, ship, bullets, allions,stats, play_btn, sb):	
 	screen.fill(ai_setting.bg_color)
+	sb.show_score()
 	for bullet in bullets:
 		bullet.draw_bullet()
 	ship.blitem()
@@ -93,14 +95,21 @@ def update_screen(ai_setting, screen, ship, bullets, allions,stats, play_btn):
 
 
 # def create_fleet(ai_setting, screen, allions, ship):
-def update_bullet(bullets, allions, ai_setting, screen, ship):
+def update_bullet(bullets, allions, ai_setting, screen, ship, stats, sb):
 	for bullet in bullets:
 		if bullet.rect.bottom <= 0:
 			bullets.remove(bullet)
 	collisions = pygame.sprite.groupcollide(bullets, allions, True, True)
+	if collisions:
+		stats.score += ai_setting.alien_points
+		sb.prep_score()
+
 	if len(allions) == 0:
 		bullets.empty()
+		ai_setting.increase_speed()
 		create_fleet(ai_setting, screen, allions, ship)
+
+
 # gf.update_aliens(ai_setting, allions, ship， screen，stats， bullets)
 def update_aliens(ai_setting, allions, ship, screen, stats, bullets):
 	check_fleet_edges(ai_setting, allions)
